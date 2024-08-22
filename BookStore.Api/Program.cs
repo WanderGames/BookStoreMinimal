@@ -16,6 +16,6 @@ var app = builder.Build();
 //call our extension method we created to map our endpoints
 app.MapBooksEndpoints();
 //call our extension method we created to update our db with our migrations
-app.MigrateDb();
+await app.MigrateDbAsync();
 
 app.Run();

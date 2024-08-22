@@ -6,7 +6,7 @@ public static class DataExtensions
 {
     //this extension method upgrades our db when we do a migration so we dont have to keep 
     //manually doing it in the cli each time
-    public static void MigrateDb(this WebApplication app)
+    public static async Task MigrateDbAsync(this WebApplication app)
     {
         //every thing that deals with db has to be scoped
         //this tells asp/net core to provide us a scoped service
@@ -15,6 +15,6 @@ public static class DataExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<BookStoreContext>();
         
         //apply any pending migrations to our db
-        dbContext.Database.Migrate();
+        await dbContext.Database.MigrateAsync();
     }
 }
