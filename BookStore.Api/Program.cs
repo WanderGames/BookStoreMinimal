@@ -13,8 +13,9 @@ builder.Services.AddSqlite<BookStoreContext>(connectionString);
 
 var app = builder.Build();
 
-//call our extension method we created to map our endpoints
+//call our extension methods we created to map our endpoints
 app.MapBooksEndpoints();
+app.MapGenreEndpoints();
 //call our extension method we created to update our db with our migrations
 await app.MigrateDbAsync();
 
