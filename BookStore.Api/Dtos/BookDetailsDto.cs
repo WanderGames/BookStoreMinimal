@@ -1,10 +1,10 @@
 namespace BookStore.Api.Dtos;
 
-public record class BookDto(
+public record class BookDetailsDto(
     int Id, 
     string Name, 
     string Author, 
-    string Genre, 
+    int GenreId, 
     decimal Price, 
     DateOnly ReleaseDate
 );

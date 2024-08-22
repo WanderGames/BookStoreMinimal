@@ -8,24 +8,24 @@ POST http://localhost:5114/books
 Content-Type: application/json
 
 {
-    "name": "The Shining",
-    "author": "Stephen King",
-    "genre": "Horror",
-    "price": 9.99,
-    "releasedate": "2013-08-27"
+    "name": "Harry Potter IV Goblet of Fire",
+    "author": "J.K. Rowling",
+    "genreId": 1,
+    "price": 19.99,
+    "releasedate": "2000-07-08"
 }
 
 ###
-PUT http://localhost:5114/books/1
+PUT http://localhost:5114/books/3
 Content-Type: application/json
 
 {
-    "name": "Name Of The Wind",
-    "author": "Patrick Rothfuss",
-    "genre": "Fantasy",
-    "price": 19.99,
-    "releaseDate": "2009-05-15"
+    "name": "Harry Potter IV Goblet of Fire",
+    "author": "J.K. Rowling",
+    "genreId": 1,
+    "price": 29.99,
+    "releasedate": "2000-07-08"
 }
 
 ###
-DELETE http://localhost:5114/books/1
+DELETE http://localhost:5114/books/3

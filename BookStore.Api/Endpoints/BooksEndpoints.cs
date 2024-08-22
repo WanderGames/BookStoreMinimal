@@ -1,4 +1,8 @@
+using BookStore.Api.Data;
 using BookStore.Api.Dtos;
+using BookStore.Api.Entities;
+using BookStore.Api.Mapping;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookStore.Api.Endpoints;
 
@@ -6,92 +10,63 @@ namespace BookStore.Api.Endpoints;
 public static class BooksEndpoints
 {
     const string GetBookEndpointName = "Get Book";
-    private static readonly List<BookDto> books = [
-        new (
-            1,
-            "Name Of The Wind",
-            "Patrick Rothfuss",
-            "Fantasy",
-            15.99m,
-            new DateOnly(2009, 05, 15)),
-        new (
-            2,
-            "Fourth Wing",
-            "Rebecca Yarros",
-            "Fantasy",
-            10.99m,
-            new DateOnly(2023, 05, 02)),
-        new (
-            3,
-            "Apps and Services with .NET 8",
-            "Mark J. Price",
-            "Nonfiction",
-            29.99m,
-            new DateOnly(2023, 12, 12))
-    ];
-
 
     //extends the WebApplication class to we can mapp all our routes in here
     //to make it an extention method we need to add this infront of what we are extending (this WebApplication app)
     public static RouteGroupBuilder MapBooksEndpoints(this WebApplication app)
-    {   
+    {
         //create a group that defines something that is common among all endpoints 
         //ex. this allows us to change the books/{id} to just be /{id} because the / will be books/ thanks to our group
-        var group = app.MapGroup("books");
+        //this paramater validation method is provided by our minimalapis.extensions nuget package and uses our data annotations we set up to validate the object created
+        var group = app.MapGroup("books").WithParameterValidation();
 
         //GET /books  (gets all books)
-        group.MapGet("/", () => books);
+        group.MapGet("/", (BookStoreContext dbContext) =>
+            //for each book in our books collections return them as a summarydto
+            //we also need to include the genre name so we can get the name since our summary dto shows the name not the genreid
+            //we also want to optomize this so entiity framework does not keep track of these since we are just sending them to the client right away (its a get)
+            dbContext.Books.Include(book => book.Genre).Select(book => book.ToBookSummaryDto()).AsNoTracking());
 
         //GET /books/1   (gets a book with id)
-        group.MapGet("/{id}", (int id) =>
+        group.MapGet("/{id}", (int id, BookStoreContext dbContext) =>
         {
             //Find() is nullable so we can either receive a book or null
-            BookDto? book = books.Find(book => book.Id == id);
+            Book? book = dbContext.Books.Find(id);
 
-            //if book is null return not found else return the book
-            return book is null ? Results.NotFound() : Results.Ok(book);
+            //if book is null return not found else return the book detials dto
+            return book is null ? Results.NotFound() : Results.Ok(book.ToBookDetailsDto());
 
         }).WithName(GetBookEndpointName);
 
-        //POST /books   (creates a new book)
-        group.MapPost("/", (CreateBookDto newBook) =>
+        //POST /books   (creates a new book) and inject our db context
+        group.MapPost("/", (CreateBookDto newBook, BookStoreContext dbContext) =>
         {
-            //create a book using our new book that was passed in
-            BookDto book = new(
-                books.Count + 1,
-                newBook.Name,
-                newBook.Author,
-                newBook.Genre,
-                newBook.Price,
-                newBook.ReleaseDate
-            );
+            //use our extension method to make our book entity
+            Book book = newBook.ToEntity();
 
-            //add the book to our list of books
-            books.Add(book);
+            //add the book to our db
+            dbContext.Books.Add(book);
+            //save the changes by translating the stored data into sql statements wich runs against our db
+            dbContext.SaveChanges();
 
             //provide a location header to the client so it knows exactly where to find this resource, 
-            //we use our with name we created above then pass the id and the object
-            return Results.CreatedAtRoute(GetBookEndpointName, new { book.Id }, book);
+            //we use our with name we created above then pass the id and the object using our toDto extension method to map it
+            return Results.CreatedAtRoute(GetBookEndpointName, new { book.Id }, book.ToBookDetailsDto());
         });
 
         //PUT /books/1   (update a book based on id)
-        group.MapPut("/{id}", (int id, UpdateBookDto updatedBook) =>
+        group.MapPut("/{id}", (int id, UpdateBookDto updatedBook, BookStoreContext dbContext) =>
         {
-            //get the index of the book based on its id
-            var index = books.FindIndex(book => book.Id == id);
+            //get the existing game we are updating
+            var existingBook = dbContext.Books.Find(id);
 
-            //FindIndex() will return a -1 if the book isnt found
-            if (index == -1) return Results.NotFound();
+            //find return null if it doesnt find anything
+            if (existingBook == null) return Results.NotFound();
 
-            //to update we basically create a new book at the existing id (ie overwrite it with the updated changes)
-            books[index] = new BookDto(
-                id,
-                updatedBook.Name,
-                updatedBook.Author,
-                updatedBook.Genre,
-                updatedBook.Price,
-                updatedBook.ReleaseDate
-            );
+            //to update we need to get the entry that is our existing game
+            //get the current values and then set them to the values of our updated book and use our to entity extension method to map it
+            dbContext.Entry(existingBook).CurrentValues.SetValues(updatedBook.ToEntity(id));
+            dbContext.SaveChanges();
 
             //since this is an update convention says to just return no content
             return Results.NoContent();
@@ -99,10 +74,10 @@ public static class BooksEndpoints
         });
 
         //DELETE /books/1   (delete a book based on id)
-        group.MapDelete("/{id}", (int id) =>
+        group.MapDelete("/{id}", (int id, BookStoreContext dbContext) =>
         {
             //delete the book with the id
-            books.RemoveAll(book => book.Id == id);
+            dbContext.Books.Where(book => book.Id == id).ExecuteDelete();
 
             //on a delete the convention is to return a no content
             return Results.NoContent();
