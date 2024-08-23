@@ -1,0 +1,75 @@
+﻿@page "/editbook"
+
+<PageTitle>New Book</PageTitle>
+
+<h3>New Book</h3>
+
+@if(genres is null)
+{
+    @* if genres array is null show loading... *@
+    <p><em>Loading...</em></p>
+
+}else
+{
+    @* use bootstrap row and columns to layour our form this make it take up a 3rd of the page width because bootstrap has 12 columns *@
+    <div class="row">
+        <div class="col-md-4">
+            @* use blazors built in editform component 
+            give it the modal we want to use in this case our book details
+            and give it a formanme to identify wich form we are posting back to the server
+            since we could have multiple forms*@
+            <EditForm Model="@book" FormName="editBook">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name:</label>
+                @* use blazors built in intputtext component  and bind its value to our books value*@
+                <InputText id="name" @bind-Value="book.Name" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label for="author" class="form-label">Author:</label>
+                @* use blazors built in intputtext component  and bind its value to our books value*@
+                <InputText id="author" @bind-Value="book.Author" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label for="genre" class="form-label">Genre:</label>
+                @* use blazors built in intputselect component  and bind its value to our books value*@
+                <InputSelect id="genre" @bind-Value="book.GenreId" class="form-select">
+                    <option value="">Select a genre</option>
+                    @* dynamically populates our genres *@
+                    @foreach(var genre in genres)
+                    {
+                        <option value="@genre.Id">@genre.Name</option>
+                    }
+                </InputSelect>
+            </div>
+            <div class="mb-3">
+                <label for="price" class="form-label">Price:</label>
+                @* use blazors built in intputnumber component  and bind its value to our books value*@
+                <InputNumber id="price" @bind-Value="book.Price" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label for="releaseDate" class="form-label">Release Date:</label>
+                @* use blazors built in intputdate component  and bind its value to our books value*@
+                <InputDate id="releaseDate" @bind-Value="book.ReleaseDate" class="form-control" />
+            </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    //create a instance of our book details class with the required field set to empty and date set to today
+    private BookDetails book { get; set; } = new()
+    {
+        Name = string.Empty,
+        Author = string.Empty,
+        ReleaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
+    };
+
+    private GenresClient genresClient = new();
+    private Genre[]? genres;
+
+    protected override void OnInitialized()
+    {
+        genres = genresClient.GetGenres();
+    }
+}

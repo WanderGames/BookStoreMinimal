@@ -1,3 +1,9 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+@* use our navmenu component, putting it here will make it show on every page since its part of the main layout *@
+<NavMenu />
+
+@* add a div around this body so we can put it in a container *@
+<div class="container">
+    @Body
+</div>

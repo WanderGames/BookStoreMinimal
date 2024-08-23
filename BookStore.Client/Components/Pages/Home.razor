@@ -1,78 +1,56 @@
 ﻿@page "/"
-@using Models
 
 <PageTitle>Book Catalog</PageTitle>
 
-<table>
+@if(books is null)
+{
+    @* if books array is null show loading... *@
+    <p><em>Loading...</em></p>
 
-    <thead>
-        <th>Id</th>
-        <th>Name</th>
-        <th>Author</th>
-        <th>Genre</th>
-        <th>Price</th>
-        <th>Release Date</th>
-        <th></th>
-    </thead>
+}else
+{
+    @* else show our table  *@
+    <table class="table tabl-striped table-bordered table-hover mt-3">
 
-    <tbody>
-        @foreach(var book in books){
-            <tr>
-                <td>@book.Id</td>
-                <td>@book.Name</td>
-                <td>@book.Author</td>
-                <td>@book.Genre</td>
-                <td>@book.Price</td>
-                <td>@book.ReleaseDate</td>
-                <td></td>
-            </tr>
-        }
-    </tbody>
+        <thead class="table-dark">
+            <th>Id</th>
+            <th>Name</th>
+            <th>Author</th>
+            <th>Genre</th>
+            <th class="text-end">Price</th>
+            <th>Release Date</th>
+            <th></th>
+        </thead>
 
-</table>
+        <tbody>
+            @foreach(var book in books)
+            {
+                <tr>
+                    <td>@book.Id</td>
+                    <td>@book.Name</td>
+                    <td>@book.Author</td>
+                    <td>@book.Genre</td>
+                    @* use tostring(C2) to format this as currency *@
+                    <td class="text-end">@book.Price.ToString("C2")</td>
+                    <td>@book.ReleaseDate</td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
 
-@code {
-    private BookSummary[] books = 
-    [
-        new() {
-            Id = 1,
-            Name = "The Whispering Grove",
-            Author = "Ella Dorsey",
-            Genre = "Fantasy",
-            Price = 15.99m,
-            ReleaseDate = new DateOnly(2023, 3, 14)
-        },
-        new() {
-            Id = 2,
-            Name = "Shadows of Tomorrow",
-            Author = "Mark Rivers",
-            Genre = "Science Fiction",
-            Price = 18.50m,
-            ReleaseDate = new DateOnly(2023, 6, 22)
-        },
-        new() {
-            Id =3,
-            Name = "Echoes of the Past",
-            Author = "Julia Harper",
-            Genre = "Historical Fiction",
-            Price = 12.75m,
-            ReleaseDate = new DateOnly(2024, 1, 10)
-        },
-        new() {
-            Id = 4,
-            Name = "Mystery in the Mist",
-            Author = "David Collins",
-            Genre = "Mystery",
-            Price = 14.25m,
-            ReleaseDate = new DateOnly(2023, 11, 5)
-        },
-        new() {
-            Id = 5,
-            Name = "Waves of Change",
-            Author = "Emily Clarke",
-            Genre = "Romance",
-            Price = 16.00m,
-            ReleaseDate = new DateOnly(2024, 2, 20)
-        }  
-    ];
+    </table>
+}
+
+@code 
+{
+    private BooksClient booksClient = new();   
+
+    private BookSummary[]? books;
+
+    //override blazors OnInitialized method to initialize our books array with the data from our client
+    protected override void OnInitialized()
+    {
+        books = booksClient.GetBooks();
+    }
+
 }
