@@ -50,8 +50,30 @@ public class BooksClient
         }  
     ];
 
+    private readonly Genre[] genres = new GenresClient().GetGenres();
+
     //use a collection expression [.. books] to return this list as an array, this is just like
     //saying books.ToArray()
     public BookSummary[] GetBooks() => [.. books];
+
+    public void AddBook(BookDetails book)
+    {   
+        //this will throw an exception if genre id is null or white space
+        ArgumentException.ThrowIfNullOrWhiteSpace(book.GenreId);
+        //find the genre based on the genre id from the book details and parse it to an int
+        var genre = genres.Single(genre => genre.Id == int.Parse(book.GenreId));
+
+        var bookSummary = new BookSummary
+        {
+            Id = books.Count + 1,
+            Name  = book.Name,
+            Author = book.Author,
+            Genre = genre.Name,
+            Price = book.Price,
+            ReleaseDate = book.ReleaseDate
+        };
+
+        books.Add(bookSummary);
+    }
 
 }

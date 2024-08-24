@@ -1,9 +1,16 @@
+using BookStore.Client.Clients;
 using BookStore.Client.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents();
+//register our books client as a singleton so its just one instance accross the app
+//this allows us to inject it in our razor components
+builder.Services.AddSingleton<BooksClient>();
+//register our genres client as a singleton so its just one instance accross the app
+//this allows us to inject it in our razor components
+builder.Services.AddSingleton<GenresClient>();
 
 var app = builder.Build();
 

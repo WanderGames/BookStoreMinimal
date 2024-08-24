@@ -1,6 +1,13 @@
 ﻿@page "/"
+@* inject our books client so we can use it in this file *@
+@inject BooksClient BooksClient
 
 <PageTitle>Book Catalog</PageTitle>
+
+<!-- add the new game button with as a link to our edit book route-->
+<div class="mt-2">
+    <a class="btn btn-primary" role="button" href="/editbook">New Game</a>
+</div>
 
 @if(books is null)
 {
@@ -43,14 +50,12 @@
 
 @code 
 {
-    private BooksClient booksClient = new();   
-
     private BookSummary[]? books;
 
     //override blazors OnInitialized method to initialize our books array with the data from our client
     protected override void OnInitialized()
     {
-        books = booksClient.GetBooks();
+        books = BooksClient.GetBooks();
     }
 
 }

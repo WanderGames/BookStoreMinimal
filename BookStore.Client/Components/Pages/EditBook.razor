@@ -1,4 +1,10 @@
 ﻿@page "/editbook"
+@* blazor creates an instance of navigation manager since we are using dependency injection**@
+@inject NavigationManager NavigationManager
+@* inject our books client so we can use it in this file *@
+@inject BooksClient BooksClient
+@* inject our genres client so we can use it in this file *@
+@inject GenresClient GenresClient
 
 <PageTitle>New Book</PageTitle>
 
@@ -17,8 +23,9 @@
             @* use blazors built in editform component 
             give it the modal we want to use in this case our book details
             and give it a formanme to identify wich form we are posting back to the server
-            since we could have multiple forms*@
-            <EditForm Model="@book" FormName="editBook">
+            since we could have multiple forms
+            and run our handle submit function on post*@
+            <EditForm Model="@book" FormName="editBook" OnSubmit="HandleSubmit">
             <div class="mb-3">
                 <label for="name" class="form-label">Name:</label>
                 @* use blazors built in intputtext component  and bind its value to our books value*@
@@ -51,6 +58,8 @@
                 @* use blazors built in intputdate component  and bind its value to our books value*@
                 <InputDate id="releaseDate" @bind-Value="book.ReleaseDate" class="form-control" />
             </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a href="/" class="btn btn-secondary" role="button">Cancel</a>
             </EditForm>
         </div>
     </div>
@@ -58,6 +67,9 @@
 
 @code {
     //create a instance of our book details class with the required field set to empty and date set to today
+    //this is bound to the form
+    //this attribute lets blazor know the values from the form should populate this game object
+    [SupplyParameterFromForm]
     private BookDetails book { get; set; } = new()
     {
         Name = string.Empty,
@@ -65,11 +77,20 @@
         ReleaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
     };
 
-    private GenresClient genresClient = new();
     private Genre[]? genres;
 
     protected override void OnInitialized()
     {
-        genres = genresClient.GetGenres();
+        genres = GenresClient.GetGenres();
+    }
+
+    private void HandleSubmit()
+    {
+        //use our injected books client to add our new book
+        BooksClient.AddBook(book);
+
+        //use blazor built in navigation manager service (this comes from the addRazorcomponent service in program.cs) 
+        //to go to the home page after we add the new book
+        NavigationManager.NavigateTo("/");
     }
 }

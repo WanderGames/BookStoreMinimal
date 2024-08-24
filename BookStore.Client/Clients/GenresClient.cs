@@ -37,6 +37,10 @@ public class GenresClient
         new(){
             Id = 8,
             Name = "Science Fiction",
+        },
+        new(){
+            Id = 9,
+            Name = "Fiction",
         }
     ];
 
